@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:gfe="http://www.springframework.org/schema/gemfire"
+       xmlns:gfe-data="http://www.springframework.org/schema/data/gemfire"
+       xmlns:repo="http://www.springframework.org/schema/data/repository"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xsi:schemaLocation="http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/data/gemfire
+	http://www.springframework.org/schema/data/gemfire/spring-data-gemfire.xsd
+	http://www.springframework.org/schema/util
+	http://www.springframework.org/schema/util/spring-util.xsd
+	http://www.springframework.org/schema/gemfire
+	http://www.springframework.org/schema/gemfire/spring-gemfire.xsd
+	http://www.springframework.org/schema/data/repository
+    http://www.springframework.org/schema/data/repository/spring-repository.xsd">
+
+    <gfe-data:repositories base-package="io.pivotal.springdata.pcf.gemfire.data" />
+
+    <gfe:client-cache pool-name="gemfirePool" copy-on-read="true" />
+
+    <gfe:client-region id="Customer" pool-name="gemfirePool" />
+    <!--<gfe:client-region id="Product" pool-name="gemfirePool" shortcut="CACHING_PROXY"/>-->
+    <gfe:client-region id="Transaction" pool-name="gemfirePool" />
+    <!--	<gfe:client-region id="MarkUp" pool-name="gemfirePool" />
+        <gfe:client-region id="Alert" pool-name="gemfirePool" />
+        <gfe:client-region id="TransactionSummary" pool-name="gemfirePool" />-->
+
+    <gfe:pool id="gemfirePool">
+        <gfe:locator host="localhost" port="15001" />
+        <!--		<gfe:locator host="localhost" port="10335" />-->
+    </gfe:pool>
+
+    <bean id="customerTemplate" class="org.springframework.data.gemfire.GemfireTemplate" p:region-ref="Customer" />
+</beans>
