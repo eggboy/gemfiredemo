@@ -5,8 +5,8 @@ import com.gemstone.gemfire.cache.client.ClientCache;
 import com.gemstone.gemfire.cache.client.ClientCacheFactory;
 import com.gemstone.gemfire.cache.client.ClientRegionShortcut;
 import io.pivotal.spring.cloud.service.common.GemfireServiceInfo;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.Cloud;
 import org.springframework.cloud.CloudFactory;
 import org.springframework.context.annotation.Bean;
@@ -23,29 +23,34 @@ import java.util.Properties;
 @Configuration
 @Profile("cloud")
 public class PCFConfig {
+    private final Logger LOG = LoggerFactory.getLogger(this.getClass());
+    private String gemfireServiceName = "p-gemfire";
 
-    @Value("${gemfire.service.name}") private String gemfireServiceName;
-
-    @Autowired GemfireServiceInfo gemfireServiceInfo;
+    @Bean Cloud getCloud() {
+        CloudFactory cloudFactory = new CloudFactory();
+        return cloudFactory.getCloud();
+    }
 
     @Bean
     public GemfireTemplate getCustomerTemplate() {
+        Cloud cloud = getCloud();
+
+        GemfireServiceInfo gemfireServiceInfo = (GemfireServiceInfo) cloud.getServiceInfo(gemfireServiceName);
+
         Properties props = new Properties();
-        props.setProperty("security-client-auth-init", "io.pivotal.springdata.pcf.gemfire.PCFClientAuthInitialize.create");
+        props.setProperty("security-client-auth-init", "io.pivotal.springdata.pcf.gemfire.config.PCFClientAuthInitialize.create");
+
         ClientCacheFactory ccf = new ClientCacheFactory(props);
         URI[] locators = gemfireServiceInfo.getLocators();
         for (URI locator : locators) {
             ccf.addPoolLocator(locator.getHost(), locator.getPort());
         }
         ClientCache client = ccf.create();
+        client.setCopyOnRead(true);
+
         Region r = client.createClientRegionFactory(ClientRegionShortcut.PROXY).create("Customer");
 
         return new GemfireTemplate(r);
     }
 
-    @Bean GemfireServiceInfo gemfireServiceInfo() {
-        CloudFactory cloudFactory = new CloudFactory();
-        Cloud cloud = cloudFactory.getCloud();
-        return (GemfireServiceInfo) cloud.getServiceInfo(gemfireServiceName);
-    }
 }

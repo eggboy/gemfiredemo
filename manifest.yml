@@ -1,0 +1,10 @@
+---
+applications:
+- name: gemfiredemo
+  memory: 1024M
+  instances: 1
+  path: target/gemfiredemo-0.0.1-SNAPSHOT.jar
+  timeout: 180
+  services: [ p-gemfire ]
+  env:
+    JAVA_OPTS: -Djava.security.egd=file:///dev/urandom

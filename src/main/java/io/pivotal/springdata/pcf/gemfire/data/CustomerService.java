@@ -5,10 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.gemfire.GemfireTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created by Jay Lee on 3/28/16.
@@ -19,25 +17,18 @@ public class CustomerService implements ServiceInterface<Customer>{
     @Autowired GemfireTemplate customerTemplate;
 
     public List<Customer> findAll() {
-        List<Customer> listCustomers = new ArrayList<Customer>();
-
-        Iterator<Map.Entry<Object, Object>> iterator = customerTemplate.getRegion().entrySet().iterator();
-        while (iterator.hasNext()) {
-            listCustomers.add((Customer) iterator.next().getValue());
-        }
-
-        return listCustomers;
+        return customerTemplate.getRegion().entrySet().stream().map(p -> (Customer) p.getValue()).collect(Collectors.toList());
     }
 
     public void save(Customer customer) {
-        customerTemplate.put(customer.getCustomerId(), customer);
+        customerTemplate.getRegion().put(customer.getCustomerId(), customer);
     }
 
     public Integer count() {
-        return customerTemplate.getRegion().size();
+        return customerTemplate.getRegion().keySet().size();
     }
 
     public Customer findOne(Long id) {
-        return customerTemplate.get(id);
+        return (Customer) customerTemplate.getRegion().get(id);
     }
 }

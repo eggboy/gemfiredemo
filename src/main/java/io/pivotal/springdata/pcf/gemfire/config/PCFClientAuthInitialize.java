@@ -5,28 +5,30 @@ import com.gemstone.gemfire.distributed.DistributedMember;
 import com.gemstone.gemfire.security.AuthInitialize;
 import com.gemstone.gemfire.security.AuthenticationFailedException;
 import io.pivotal.spring.cloud.service.common.GemfireServiceInfo;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.cloud.Cloud;
+import org.springframework.cloud.CloudFactory;
 
 import java.util.Properties;
 
-@Component
 public class PCFClientAuthInitialize implements AuthInitialize {
 
-    @Autowired GemfireServiceInfo gemfireServiceInfo;
+    private final Logger LOG = LoggerFactory.getLogger(this.getClass());
 
-    public static final String USER_NAME = "security-username";
-    public static final String PASSWORD = "security-password";
-/*
+    private static final String USER_NAME = "security-username";
+    private static final String PASSWORD = "security-password";
 
-    public GemfireServiceInfo serviceInfo;
+    private GemfireServiceInfo serviceInfo;
 
     private PCFClientAuthInitialize() {
+        String gemfireServiceName = "p-gemfire";
+
         CloudFactory cloudFactory = new CloudFactory();
         Cloud cloud = cloudFactory.getCloud();
-        serviceInfo = (GemfireServiceInfo) cloud.getServiceInfo(gemfireServiceName);
+
+        serviceInfo = (GemfireServiceInfo) cloud.getServiceInfo("p-gemfire");
     }
-*/
 
     public static AuthInitialize create() {
         return new PCFClientAuthInitialize();
@@ -39,13 +41,12 @@ public class PCFClientAuthInitialize implements AuthInitialize {
     @Override
     public Properties getCredentials(Properties arg0, DistributedMember arg1,
         boolean arg2) throws AuthenticationFailedException {
-        Properties props = new Properties();
+        String username = serviceInfo.getUsername();
+        String password = serviceInfo.getPassword();
 
-        String username = gemfireServiceInfo.getUsername();
-        String password = gemfireServiceInfo.getPassword();
+        Properties props = new Properties();
         props.put(USER_NAME, username);
         props.put(PASSWORD, password);
-
         return props;
     }
 
